@@ -1,0 +1,3 @@
+[submodule "zokrates"]
+	path = zokrates
+	url = git@github.com:gzhong-aion/zokrates.git

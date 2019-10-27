@@ -15,6 +15,12 @@
 .gradle
 build/
 out/
+classes/
+generated/
+reports/
+test-results/
+tmp/
 
 # application logging
 logs/
+

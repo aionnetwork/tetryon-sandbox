@@ -47,11 +47,11 @@ subprojects {
 // project-specific configurations
 // -------------------------------
 
-project(':contract') {
+project(':verifier-contract') {
     // no project-specific settings
 }
 
-project(':zokrates') {
+project(':zokrates-wrapper') {
     // no project-specific settings
 }
 

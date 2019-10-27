@@ -1,0 +1,3 @@
+rootProject.name = 'tetryon-bench'
+include 'contract'
+include 'zokrates'

@@ -1,0 +1,69 @@
+// plugins needs to be the first thing declared
+plugins {
+    id "org.jetbrains.gradle.plugin.idea-ext" version "0.7" apply false
+}
+
+wrapper {
+    gradleVersion = '5.6'
+}
+
+// configurations common to all subprojects
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
+
+    group 'org.aion.tetryon'
+    version '1.0'
+
+    sourceCompatibility = 10
+    targetCompatibility = 10
+
+    repositories {
+        // jcenter is a superset of mavenCentral
+        jcenter()
+    }
+
+    // for now, give all subprojects all dependencies,
+    dependencies {
+        // include avm libraries
+        compile fileTree(include: ['*.jar'], dir: '../avm/lib')
+
+        // include all libraries in the project's lib folder
+        compile fileTree(include: ['*.jar'], dir: 'lib')
+
+        // https://mvnrepository.com/artifact/junit/junit
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+
+        // https://mvnrepository.com/artifact/commons-io/commons-io
+        compile group: 'commons-io', name: 'commons-io', version: '2.6'
+
+        // https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
+        compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+    }
+}
+
+// -------------------------------
+// project-specific configurations
+// -------------------------------
+
+project(':contract') {
+    // no project-specific settings
+}
+
+project(':zokrates') {
+    // no project-specific settings
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

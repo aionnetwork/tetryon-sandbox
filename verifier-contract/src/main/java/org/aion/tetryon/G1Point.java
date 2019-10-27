@@ -1,4 +1,4 @@
-package org.aion.tetryon;
+package org.aion.tetryon; // should be org.oan.tetryon in zokrates
 
 import java.math.BigInteger;
 

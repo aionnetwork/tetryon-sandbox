@@ -1,5 +1,4 @@
-// This file is MIT Licensed
-package org.aion.tetryon;
+package org.aion.tetryon; // should be org.oan.tetryon in zokrates
 
 import avm.Blockchain;
 import org.aion.avm.tooling.abi.Callable;
@@ -28,7 +27,7 @@ public class Verifier {
         }
     }
 
-    protected static class Proof {
+    public static class Proof {
         public final G1Point a;
         public final G2Point b;
         public final G1Point c;

@@ -64,7 +64,7 @@ public class InMemoryJavaCompiler {
 	 * @return Map containing instances of all compiled classes
 	 * @throws Exception
 	 */
-	public List<CompiledCode> compileAll() throws Exception {
+	public CompilationOutput compileAll() throws Exception {
 		if (sourceCodes.size() == 0) {
 			throw new CompilationException("No source code to compile");
 		}
@@ -107,14 +107,11 @@ public class InMemoryJavaCompiler {
 			}
 		}
 
-		return fileManager.getCompiledCode();
-
-		/*
 		Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
 		for (String className : sourceCodes.keySet()) {
 			classes.put(className, classLoader.loadClass(className));
 		}
-		return classes;*/
+		return new CompilationOutput(classes, fileManager.getCompiledCode());
 	}
 
 	/**
@@ -125,9 +122,9 @@ public class InMemoryJavaCompiler {
 	 * @return
 	 * @throws Exception
 	 */
-	/*public Class<?> compile(String className, String sourceCode) throws Exception {
-		return addSource(className, sourceCode).compileAll().get(className);
-	}*/
+	public Class<?> compile(String className, String sourceCode) throws Exception {
+		return addSource(className, sourceCode).compileAll().getClassMap().get(className);
+	}
 
 	/**
 	 * Add source code to the compiler

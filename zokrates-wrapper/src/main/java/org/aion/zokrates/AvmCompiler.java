@@ -44,7 +44,7 @@ public class AvmCompiler {
             javac.addSource(s.getKey(), s.getValue());
         }
 
-        List<CompiledCode> compiled = javac.compileAll();
+        List<CompiledCode> compiled = javac.compileAll().getCompiledCode();
 
         HashMap<String, byte[]> classBytes = new HashMap<>();
         for (CompiledCode c : compiled) {

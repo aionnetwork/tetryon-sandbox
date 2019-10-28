@@ -12,7 +12,6 @@ public class InMemoryJavaCompilerTest {
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
-	/*
 	@Test
 	public void compile_WhenTypical() throws Exception {
 		StringBuffer sourceCode = new StringBuffer();
@@ -32,7 +31,7 @@ public class InMemoryJavaCompilerTest {
 		String cls1 = "public class A{ public B b() { return new B(); }}";
 		String cls2 = "public class B{ public String toString() { return \"B!\"; }}";
 
-		Map<String, Class<?>> compiled = InMemoryJavaCompiler.newInstance().addSource("A", cls1).addSource("B", cls2).compileAll();
+		Map<String, Class<?>> compiled = InMemoryJavaCompiler.newInstance().addSource("A", cls1).addSource("B", cls2).compileAll().getClassMap();
 
 		Assert.assertNotNull(compiled.get("A"));
 		Assert.assertNotNull(compiled.get("B"));
@@ -111,5 +110,4 @@ public class InMemoryJavaCompilerTest {
 			throw e;
 		}
 	}
-	 */
 }

@@ -58,13 +58,6 @@ project(':verifier-contract') {
 project(':zokrates-wrapper') {
     dependencies {
         implementation project(':verifier-contract')
-        runtime files('out/test/classes')
-    }
-
-    task printClasspath {
-        doLast {
-            configurations.testRuntime.each { println it }
-        }
     }
 }
 

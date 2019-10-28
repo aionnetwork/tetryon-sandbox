@@ -3,6 +3,7 @@ package org.aion.zokrates;
 import avm.Address;
 import org.aion.avm.embed.AvmRule;
 import org.aion.avm.tooling.ABIUtil;
+import org.aion.avm.userlib.CodeAndArguments;
 import org.aion.avm.userlib.abi.ABIDecoder;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.parser.ParseException;
@@ -13,11 +14,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Objects;
-
-import static org.aion.zokrates.Zokrates.*;
 
 import static org.aion.tetryon.Verifier.Proof;
 
@@ -43,27 +43,29 @@ public class IntegrationTest {
                 (String) null);
     }
 
-    static Address deployContract(AvmContract contract) {
-        byte[] dappBytes = avmRule.getDappBytes(contract.getMainClass(), null, 1, contract.getOtherClasses().toArray(new Class<?>[0]));
+
+    static Address deployContract(File workingDir) throws IOException, ClassNotFoundException {
+        byte [] optimizedJar = AvmCompiler.generateAvmJar(workingDir);
+        byte[] dappBytes = new CodeAndArguments(optimizedJar, null).encodeToBytes();
+
         AvmRule.ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, dappBytes);
         Assert.assertTrue (w.getTransactionResult().energyUsed < 1_500_000);
         return w.getDappAddress();
     }
 
     @Test
-    public void preimageTest() throws IOException, ParseException, InterruptedException, ClassNotFoundException {
+    public void preimageTest() throws IOException, ParseException, ClassNotFoundException {
         // cleanup
-        FileUtils.deleteDirectory(new File(compilePath.getCanonicalPath() + packagePath));
+        //FileUtils.deleteDirectory(new File(compilePath.getCanonicalPath() + packagePath));
 
         File workingDir = folder.newFolder(testName.getMethodName());
         String code = loadResource("preimage.zok");
 
-        Zokrates z = new Zokrates(workingDir, code, Zokrates.Scheme.G16);
+        ZokratesProgram z = new ZokratesProgram(workingDir, code, ProvingScheme.G16);
 
         z.compile().setup().exportAvmVerifier();
-        AvmContract contract = z.compileAndLoadContractClasses(compilePath);
 
-        Address dapp = deployContract(contract);
+        Address dapp = deployContract(workingDir);
 
         z.computeWitness("337", "113569").generateProof();
 

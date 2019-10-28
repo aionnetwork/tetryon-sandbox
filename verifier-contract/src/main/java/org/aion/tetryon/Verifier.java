@@ -141,7 +141,6 @@ public class Verifier {
 
     @Callable
     public static boolean verify(BigInteger[] input, byte[] proof) {
-        Blockchain.println("verify called!");
         try {
             return verify(input, Proof.deserialize(proof));
         } catch (Exception e) {

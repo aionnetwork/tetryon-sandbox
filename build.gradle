@@ -27,7 +27,7 @@ subprojects {
     // for now, give all subprojects all dependencies,
     dependencies {
         // include avm libraries
-        compile fileTree(include: ['*.jar'], dir: '../avm/lib')
+        compile fileTree(include: ['*.jar'], dir: '../artifacts/avm')
 
         // include all libraries in the project's lib folder
         compile fileTree(include: ['*.jar'], dir: 'lib')

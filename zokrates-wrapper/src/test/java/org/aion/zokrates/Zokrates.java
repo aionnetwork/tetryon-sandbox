@@ -55,8 +55,8 @@ public class Zokrates {
      */
     public Zokrates(File workingDir, String sourceCode, Scheme scheme) throws IOException {
         // hardcoded paths
-        this.zokratesPath = new File(new File(".").getCanonicalPath() + "/../zokrates/target/debug/zokrates");
-        this.avmLibPath = new File("../avm/lib");
+        this.zokratesPath = new File("../artifacts/zokrates");
+        this.avmLibPath = new File("../artifacts/avm");
 
         // provided paths
         this.workingDir = workingDir;

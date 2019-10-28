@@ -2,3 +2,9 @@
 [submodule "submodules/zokrates"]
 	path = submodules/zokrates
 	url = git@github.com:gzhong-aion/zokrates.git
+[submodule "submodules/avm"]
+	path = submodules/avm
+	url = git@github.com:ali-sharif/avm.git
+[submodule "submodules/bn128-jni"]
+	path = submodules/bn128-jni
+	url = git@github.com:ali-sharif/bn128-jni.git

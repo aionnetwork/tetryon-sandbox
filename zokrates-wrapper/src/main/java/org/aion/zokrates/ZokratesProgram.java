@@ -81,10 +81,13 @@ public class ZokratesProgram {
         return this;
     }
 
-    public ZokratesProgram generateProof() throws IOException {
+    public VerifyArgs generateProof() throws Exception {
         CommandLine c = CommandLine.parse(zokratesPath.getCanonicalPath() + " generate-proof --proving-scheme " + this.scheme.toString());
         executor.execute(c);
-        return this;
+
+        final String generatedProof = FileUtils.readFileToString(new File(workingDir, "proof.json"), (String) null);
+
+        return VerifyArgs.parseJson(generatedProof, this.scheme);
     }
 
     // utility

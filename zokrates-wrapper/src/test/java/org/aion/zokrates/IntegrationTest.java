@@ -6,7 +6,6 @@ import org.aion.avm.tooling.ABIUtil;
 import org.aion.avm.userlib.CodeAndArguments;
 import org.aion.avm.userlib.abi.ABIDecoder;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,7 +18,9 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.aion.tetryon.Verifier.Proof;
+import static org.aion.avm.embed.AvmRule.ResultWrapper;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("SameParameterValue")
 public class IntegrationTest {
@@ -46,37 +47,39 @@ public class IntegrationTest {
         byte [] optimizedJar = AvmCompiler.generateAvmJar(mainClassFullyQualifiedName, code);
         byte[] dappBytes = new CodeAndArguments(optimizedJar, null).encodeToBytes();
 
-        AvmRule.ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, dappBytes);
-        Assert.assertTrue (w.getTransactionResult().energyUsed < 1_500_000);
+        ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, dappBytes);
+        assertTrue (w.getTransactionResult().energyUsed < 1_500_000);
         return w.getDappAddress();
     }
 
+    private static void callVerifyAndAssertBoolean(Address dapp, VerifyArgs args, boolean verifyResult) {
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", args.getInput(), args.getProof().serialize());
+        ResultWrapper w = avmRule.call(sender, dapp, BigInteger.ZERO, txData);
+
+        assertTrue(w.getReceiptStatus().isSuccess());
+        assertTrue(w.getTransactionResult().energyUsed < 500_000);
+        assertEquals(new ABIDecoder(w.getTransactionResult().copyOfTransactionOutput().orElseThrow()).decodeOneBoolean(), verifyResult);
+    }
 
     @Test
     public void preimageTest() throws Exception {
-        // cleanup
-        //FileUtils.deleteDirectory(new File(compilePath.getCanonicalPath() + packagePath));
-
         File workingDir = folder.newFolder(testName.getMethodName());
         String code = loadResource("preimage.zok");
 
-        ZokratesProgram z = new ZokratesProgram(workingDir, code, ProvingScheme.G16);
+        ProvingScheme ps = ProvingScheme.G16;
+
+        ZokratesProgram z = new ZokratesProgram(workingDir, code, ps);
 
         Map<String, String> contracts = z.compile().setup().exportAvmVerifier();
 
         Address dapp = deployContract("org.oan.tetryon.Verifier", contracts);
 
-        z.computeWitness("337", "113569").generateProof();
+        // positive test case
+        VerifyArgs pos = z.computeWitness("337", "113569").generateProof();
+        callVerifyAndAssertBoolean(dapp, pos, true);
 
-        final String generatedProof = FileUtils.readFileToString(new File(workingDir.getCanonicalPath() + "/proof.json"), (String) null);
-        Proof proof = Util.parseProof(generatedProof);
-        BigInteger[] input = Util.parseInput(generatedProof);
-
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, proof.serialize());
-        AvmRule.ResultWrapper r = avmRule.call(sender, dapp, BigInteger.ZERO, txData);
-
-        Assert.assertTrue(r.getReceiptStatus().isSuccess());
-        Assert.assertTrue(r.getTransactionResult().energyUsed < 500_000);
-        Assert.assertTrue(new ABIDecoder(r.getTransactionResult().copyOfTransactionOutput().orElseThrow()).decodeOneBoolean());
+        // negative test case
+        VerifyArgs neg = z.computeWitness("337", "113570").generateProof();
+        callVerifyAndAssertBoolean(dapp, neg, false);
     }
 }

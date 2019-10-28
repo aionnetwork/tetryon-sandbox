@@ -6,7 +6,6 @@ import org.aion.avm.tooling.ABIUtil;
 import org.aion.avm.userlib.CodeAndArguments;
 import org.aion.avm.userlib.abi.ABIDecoder;
 import org.apache.commons.io.FileUtils;
-import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -17,10 +16,12 @@ import org.junit.rules.TestName;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.aion.tetryon.Verifier.Proof;
 
+@SuppressWarnings("SameParameterValue")
 public class IntegrationTest {
 
     @Rule
@@ -33,10 +34,7 @@ public class IntegrationTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    static final File compilePath = new File("out/test/classes");
-    static final String packagePath = "/org/oan/tetryon";
-
-    static String loadResource(String fileName) throws IOException {
+    private static String loadResource(String fileName) throws IOException {
         // from src/test/resources folder
         return FileUtils.readFileToString(
                 new File(Objects.requireNonNull(IntegrationTest.class.getClassLoader().getResource(fileName)).getFile()),
@@ -44,8 +42,8 @@ public class IntegrationTest {
     }
 
 
-    static Address deployContract(File workingDir) throws IOException, ClassNotFoundException {
-        byte [] optimizedJar = AvmCompiler.generateAvmJar(workingDir);
+    private static Address deployContract(String mainClassFullyQualifiedName, Map<String, String> code) throws Exception {
+        byte [] optimizedJar = AvmCompiler.generateAvmJar(mainClassFullyQualifiedName, code);
         byte[] dappBytes = new CodeAndArguments(optimizedJar, null).encodeToBytes();
 
         AvmRule.ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, dappBytes);
@@ -53,8 +51,9 @@ public class IntegrationTest {
         return w.getDappAddress();
     }
 
+
     @Test
-    public void preimageTest() throws IOException, ParseException, ClassNotFoundException {
+    public void preimageTest() throws Exception {
         // cleanup
         //FileUtils.deleteDirectory(new File(compilePath.getCanonicalPath() + packagePath));
 
@@ -63,9 +62,9 @@ public class IntegrationTest {
 
         ZokratesProgram z = new ZokratesProgram(workingDir, code, ProvingScheme.G16);
 
-        z.compile().setup().exportAvmVerifier();
+        Map<String, String> contracts = z.compile().setup().exportAvmVerifier();
 
-        Address dapp = deployContract(workingDir);
+        Address dapp = deployContract("org.oan.tetryon.Verifier", contracts);
 
         z.computeWitness("337", "113569").generateProof();
 

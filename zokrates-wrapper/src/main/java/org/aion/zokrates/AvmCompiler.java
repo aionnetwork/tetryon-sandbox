@@ -2,52 +2,23 @@ package org.aion.zokrates;
 
 import org.aion.avm.core.dappreading.UserlibJarBuilder;
 import org.aion.avm.tooling.deploy.OptimizedJarBuilder;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
+import org.mdkt.compiler.CompiledCode;
+import org.mdkt.compiler.InMemoryJavaCompiler;
 
-import javax.tools.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public class AvmCompiler {
 
     // hardcoded paths
     private static final File avmLibPath = new File("../artifacts/avm");
-    private static final String generatedContractDir = "avm-verifier";
-    private static final String classPrefix = "org.oan.tetryon";
 
-    private static final String AVM_CONTRACT_MAIN_CLASS = "Verifier";
-    private static final List<String> AVM_CONTRACT_OTHER_CLASSES = Arrays.asList("Util", "Fp", "Fp2", "G1Point", "G1", "G2Point", "G2", "Pairing");
-
-    public static byte[] generateAvmJar(File workingDir) throws IOException {
-        List<String> classNames = new ArrayList<>(AVM_CONTRACT_OTHER_CLASSES);
-        classNames.add(AVM_CONTRACT_MAIN_CLASS);
-
-        List<File> classPaths = new ArrayList<>();
-        for (String c : classNames) {
-            classPaths.add(new File(workingDir,generatedContractDir+"/"+c+".java"));
-        }
-
-        boolean didCompile = compile(classPaths, workingDir);
-        if (!didCompile)
-            throw new RuntimeException("could not compile java files");
-
-        List<File> compiledClassFiles = (List<File>) FileUtils.listFiles(workingDir, new String[]{"class"}, true);
-
-        HashMap<String, byte[]> classBytes = new HashMap<>();
-        for (File f : compiledClassFiles) {
-            String k = classPrefix + "." + FilenameUtils.removeExtension(f.getName());
-            byte[] v = FileUtils.readFileToByteArray(f);
-            classBytes.put(k, v);
-        }
-
-        String mainClassFqn = classPrefix + "." + AVM_CONTRACT_MAIN_CLASS;
-        byte[] mainClassBytes = classBytes.remove(mainClassFqn);
+    public static byte[] generateAvmJar(String mainClassFullyQualifiedName, Map<String, String> code) throws Exception {
+        HashMap<String, byte[]> allClasses = compileInMemory(code);
+        byte[] mainClass = allClasses.remove(mainClassFullyQualifiedName);
 
         byte[] unoptimizedJar = UserlibJarBuilder.buildJarForExplicitClassNamesAndBytecode(
-                classPrefix + "." + AVM_CONTRACT_MAIN_CLASS, mainClassBytes,
-                classBytes);
+                mainClassFullyQualifiedName, mainClass, allClasses);
 
         return new OptimizedJarBuilder(true, unoptimizedJar, 2)
                 .withUnreachableMethodRemover()
@@ -56,44 +27,31 @@ public class AvmCompiler {
                 .getOptimizedBytes();
     }
 
-    private static boolean compile(List<File> srcFiles, File outputPath) throws IOException {
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
-
+    private static HashMap<String, byte[]> compileInMemory(Map<String, String> sources) throws Exception {
         String cp = buildClassPath(avmLibPath.getCanonicalPath() + "/*" );
 
         List<String> optionList = new ArrayList<>();
         optionList.add("--release");
         optionList.add("10");
-
-        optionList.add("-d");
-        optionList.add(outputPath.getCanonicalPath());
-
         optionList.add("-classpath");
         optionList.add(System.getProperty("java.class.path") + ";" + cp);
 
-        Iterable<? extends JavaFileObject> compilationUnit = fileManager.getJavaFileObjectsFromFiles(srcFiles);
+        InMemoryJavaCompiler javac = InMemoryJavaCompiler.newInstance();
 
-        JavaCompiler.CompilationTask task = compiler.getTask(
-                null,
-                fileManager,
-                diagnostics,
-                optionList,
-                null,
-                compilationUnit);
+        javac.useOptions(optionList.toArray(new String[0]));
 
-        boolean r = task.call();
-
-        if (!r) {
-            for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-                System.out.format("Error on line %d in %s%n",
-                        diagnostic.getLineNumber(),
-                        diagnostic.getSource().toUri());
-            }
+        for (Map.Entry<String, String> s : sources.entrySet()) {
+            javac.addSource(s.getKey(), s.getValue());
         }
 
-        return r;
+        List<CompiledCode> compiled = javac.compileAll();
+
+        HashMap<String, byte[]> classBytes = new HashMap<>();
+        for (CompiledCode c : compiled) {
+            classBytes.put(c.getClassName(), c.getByteCode());
+        }
+
+        return classBytes;
     }
 
     private static String buildClassPath(String... paths) {

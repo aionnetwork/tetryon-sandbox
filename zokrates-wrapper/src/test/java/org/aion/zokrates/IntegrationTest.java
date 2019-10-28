@@ -42,7 +42,6 @@ public class IntegrationTest {
                 (String) null);
     }
 
-
     private static Address deployContract(String mainClassFullyQualifiedName, Map<String, String> code) throws Exception {
         byte [] optimizedJar = AvmCompiler.generateAvmJar(mainClassFullyQualifiedName, code);
         byte[] dappBytes = new CodeAndArguments(optimizedJar, null).encodeToBytes();
@@ -52,7 +51,7 @@ public class IntegrationTest {
         return w.getDappAddress();
     }
 
-    private static void callVerifyAndAssertBoolean(Address dapp, VerifyArgs args, boolean verifyResult) {
+    private static void verifyAndAssertResult(Address dapp, VerifyArgs args, boolean verifyResult) {
         byte[] txData = ABIUtil.encodeMethodArguments("verify", args.getInput(), args.getProof().serialize());
         ResultWrapper w = avmRule.call(sender, dapp, BigInteger.ZERO, txData);
 
@@ -66,9 +65,7 @@ public class IntegrationTest {
         File workingDir = folder.newFolder(testName.getMethodName());
         String code = loadResource("preimage.zok");
 
-        ProvingScheme ps = ProvingScheme.G16;
-
-        ZokratesProgram z = new ZokratesProgram(workingDir, code, ps);
+        ZokratesProgram z = new ZokratesProgram(workingDir, code, ProvingScheme.G16);
 
         Map<String, String> contracts = z.compile().setup().exportAvmVerifier();
 
@@ -76,10 +73,10 @@ public class IntegrationTest {
 
         // positive test case
         VerifyArgs pos = z.computeWitness("337", "113569").generateProof();
-        callVerifyAndAssertBoolean(dapp, pos, true);
+        verifyAndAssertResult(dapp, pos, true);
 
         // negative test case
         VerifyArgs neg = z.computeWitness("337", "113570").generateProof();
-        callVerifyAndAssertBoolean(dapp, neg, false);
+        verifyAndAssertResult(dapp, neg, false);
     }
 }

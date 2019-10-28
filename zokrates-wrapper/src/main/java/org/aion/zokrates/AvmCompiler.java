@@ -5,8 +5,10 @@ import org.aion.avm.tooling.deploy.OptimizedJarBuilder;
 import org.mdkt.compiler.CompiledCode;
 import org.mdkt.compiler.InMemoryJavaCompiler;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AvmCompiler {
 

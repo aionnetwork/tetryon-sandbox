@@ -107,8 +107,9 @@ public class Verifier {
         return new VerifyingKey(alpha, beta, gamma, delta, gamma_abc);
     }
 
+    static final BigInteger snarkScalarField = new BigInteger("21888242871839275222246405745257275088548364400416034343698204186575808495617");
+
     public static boolean verify(BigInteger[] input, Proof proof) throws Exception {
-        BigInteger snarkScalarField = new BigInteger("21888242871839275222246405745257275088548364400416034343698204186575808495617");
         VerifyingKey vk = verifyingKey();
         Blockchain.require(input.length + 1 == vk.gamma_abc.length);
 
@@ -141,12 +142,18 @@ public class Verifier {
 
     @Callable
     public static boolean verify(BigInteger[] input, byte[] proof) {
+        Blockchain.println("verify() called");
+
         try {
-            return verify(input, Proof.deserialize(proof));
+            if (verify(input, Proof.deserialize(proof))) {
+                Blockchain.log("VerifySnark".getBytes(), BigInteger.ONE.toByteArray());
+                return true;
+            }
         } catch (Exception e) {
             Blockchain.println("verify() failed with exception: " + e.getMessage());
         }
 
+        Blockchain.log("VerifySnark".getBytes(), BigInteger.ZERO.toByteArray());
         return false;
     }
 }

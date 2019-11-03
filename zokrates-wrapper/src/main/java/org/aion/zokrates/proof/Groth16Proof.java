@@ -10,7 +10,7 @@ import org.json.simple.parser.JSONParser;
 
 import java.util.Arrays;
 
-import static org.aion.zokrates.Util.sanitizeHex;
+import static org.aion.zokrates.Util.trimHexPrefix;
 
 @SuppressWarnings("WeakerAccess")
 public class Groth16Proof implements Proof {
@@ -55,21 +55,21 @@ public class Groth16Proof implements Proof {
 
         JSONArray a = (JSONArray) p.get("a");
         G1Point p_a = new G1Point(
-                sanitizeHex((String) a.get(0)),
-                sanitizeHex((String) a.get(1)));
+                trimHexPrefix((String) a.get(0)),
+                trimHexPrefix((String) a.get(1)));
 
         JSONArray b = (JSONArray) p.get("b");
         JSONArray b_x = (JSONArray) b.get(0);
         JSONArray b_y = (JSONArray) b.get(1);
 
         G2Point p_b = new G2Point(
-                sanitizeHex((String) b_x.get(1)), sanitizeHex((String) b_x.get(0)),
-                sanitizeHex((String) b_y.get(1)), sanitizeHex((String) b_y.get(0)));
+                trimHexPrefix((String) b_x.get(1)), trimHexPrefix((String) b_x.get(0)),
+                trimHexPrefix((String) b_y.get(1)), trimHexPrefix((String) b_y.get(0)));
 
         JSONArray c = (JSONArray) p.get("c");
         G1Point p_c = new G1Point(
-                sanitizeHex((String) c.get(0)),
-                sanitizeHex((String) c.get(1)));
+                trimHexPrefix((String) c.get(0)),
+                trimHexPrefix((String) c.get(1)));
 
         return new Groth16Proof(p_a, p_b, p_c);
     }

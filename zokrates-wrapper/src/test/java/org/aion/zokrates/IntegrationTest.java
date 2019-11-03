@@ -5,7 +5,11 @@ import org.aion.avm.embed.AvmRule;
 import org.aion.avm.tooling.ABIUtil;
 import org.aion.avm.userlib.CodeAndArguments;
 import org.aion.avm.userlib.abi.ABIDecoder;
+import org.aion.types.Log;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,10 +19,13 @@ import org.junit.rules.TestName;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import static org.aion.avm.embed.AvmRule.ResultWrapper;
+import static org.aion.zokrates.Util.trimTrailingZeros;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -42,6 +49,24 @@ public class IntegrationTest {
                 (String) null);
     }
 
+    private static String exportContractJar(String mainClassFullyQualifiedName, Map<String, String> code, String fileName, File outputDir) throws Exception {
+        if (!outputDir.isDirectory()) throw new UnsupportedOperationException();
+
+        byte [] optimizedJar = AvmCompiler.generateAvmJar(mainClassFullyQualifiedName, code);
+
+        // append top 5 bytes of md5 hash of the jar bytes, to avoid overwriting any previous jars
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] digest = md.digest(optimizedJar);
+        if (digest.length != 16) throw new RuntimeException();
+        String hash = Hex.encodeHexString(digest).toLowerCase().substring(0, 8);
+
+        String outputFileName = fileName + "-" + hash + ".jar";
+        File outputPath = new File(outputDir, outputFileName);
+        FileUtils.writeByteArrayToFile(outputPath, optimizedJar);
+
+        return outputFileName;
+    }
+
     private static Address deployContract(String mainClassFullyQualifiedName, Map<String, String> code) throws Exception {
         byte [] optimizedJar = AvmCompiler.generateAvmJar(mainClassFullyQualifiedName, code);
         byte[] dappBytes = new CodeAndArguments(optimizedJar, null).encodeToBytes();
@@ -53,11 +78,18 @@ public class IntegrationTest {
 
     private static void verifyAndAssertResult(Address dapp, VerifyArgs args, boolean verifyResult) {
         byte[] txData = ABIUtil.encodeMethodArguments("verify", args.getInput(), args.getProof().serialize());
+        System.out.println("Encoded Transaction Data: " + Hex.encodeHexString(txData));
         ResultWrapper w = avmRule.call(sender, dapp, BigInteger.ZERO, txData);
 
         assertTrue(w.getReceiptStatus().isSuccess());
         assertTrue(w.getTransactionResult().energyUsed < 500_000);
         assertEquals(new ABIDecoder(w.getTransactionResult().copyOfTransactionOutput().orElseThrow()).decodeOneBoolean(), verifyResult);
+
+        List<Log> logs = w.getLogs();
+        Assert.assertEquals(1, logs.size());
+        Assert.assertEquals(1, logs.get(0).copyOfTopics().size());
+        Assert.assertEquals("VerifySnark", StringUtils.newStringUtf8(trimTrailingZeros(logs.get(0).copyOfTopics().get(0))));
+        Assert.assertEquals(verifyResult ? BigInteger.ONE : BigInteger.ZERO, new BigInteger(logs.get(0).copyOfData()));
     }
 
     @Test
@@ -68,6 +100,8 @@ public class IntegrationTest {
         ZokratesProgram z = new ZokratesProgram(workingDir, code, ProvingScheme.G16);
 
         Map<String, String> contracts = z.compile().setup().exportAvmVerifier();
+
+        //String exportedFileName = exportContractJar("org.oan.tetryon.Verifier", contracts, "SquarePreimageVerifier", new File("export"));
 
         Address dapp = deployContract("org.oan.tetryon.Verifier", contracts);
 

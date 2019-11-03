@@ -4,13 +4,18 @@ import avm.Address;
 import org.aion.avm.embed.AvmRule;
 import org.aion.avm.tooling.ABIUtil;
 import org.aion.avm.userlib.abi.ABIDecoder;
+import org.aion.types.Log;
 import org.aion.types.TransactionStatus;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.binary.StringUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
 
 public class VerifierTest {
 
@@ -27,6 +32,15 @@ public class VerifierTest {
         AvmRule.ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, g16DappBytes);
         Assert.assertTrue (w.getTransactionResult().energyUsed < 1_500_000);
         contract = w.getDappAddress();
+    }
+
+    static byte[] trim(byte[] bytes) {
+        int i = bytes.length - 1;
+        while (i >= 0 && bytes[i] == 0) {
+            --i;
+        }
+
+        return Arrays.copyOf(bytes, i + 1);
     }
 
     // positive test-case for square pre-image verifier: a=337, b=113569 (a^2 == b)
@@ -60,6 +74,13 @@ public class VerifierTest {
         Assert.assertTrue(w.getTransactionResult().energyUsed < 500_000);
         // verify should return "true"
         Assert.assertTrue(new ABIDecoder(w.getTransactionResult().copyOfTransactionOutput().orElseThrow()).decodeOneBoolean());
+
+        List<Log> logs = w.getLogs();
+        Assert.assertEquals(1, logs.size());
+        Assert.assertEquals(1, logs.get(0).copyOfTopics().size());
+        Assert.assertEquals("VerifySnark", StringUtils.newStringUtf8(trim(logs.get(0).copyOfTopics().get(0))));
+        Assert.assertEquals(BigInteger.ONE, new BigInteger(logs.get(0).copyOfData()));
+
     }
 
     // negative test-case for square pre-image verifier: a=337, b=113570 (a^2 != b)
@@ -90,6 +111,12 @@ public class VerifierTest {
         Assert.assertTrue(w.getReceiptStatus().isSuccess());
         Assert.assertTrue(w.getTransactionResult().energyUsed < 500_000);
         Assert.assertFalse(new ABIDecoder(w.getTransactionResult().copyOfTransactionOutput().orElseThrow()).decodeOneBoolean());
+
+        List<Log> logs = w.getLogs();
+        Assert.assertEquals(1, logs.size());
+        Assert.assertEquals(1, logs.get(0).copyOfTopics().size());
+        Assert.assertEquals("VerifySnark", StringUtils.newStringUtf8(trim(logs.get(0).copyOfTopics().get(0))));
+        Assert.assertEquals(BigInteger.ZERO, new BigInteger(logs.get(0).copyOfData()));
     }
 
     @Test

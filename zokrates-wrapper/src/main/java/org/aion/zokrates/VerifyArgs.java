@@ -8,7 +8,7 @@ import org.json.simple.parser.JSONParser;
 
 import java.math.BigInteger;
 
-import static org.aion.zokrates.Util.sanitizeHex;
+import static org.aion.zokrates.Util.trimHexPrefix;
 
 public class VerifyArgs {
     private final Proof proof;
@@ -45,7 +45,7 @@ public class VerifyArgs {
 
         BigInteger[] input = new BigInteger[i.size()];
         for (int x = 0; x < input.length; x++) {
-            input[x] = new BigInteger(sanitizeHex((String) i.get(x)), 16);
+            input[x] = new BigInteger(trimHexPrefix((String) i.get(x)), 16);
         }
 
         return new VerifyArgs(provingScheme, proof, input);

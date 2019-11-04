@@ -1,0 +1,57 @@
+{
+  "_args": [
+    [
+      "aion-web3-avm-abi@1.2.6-beta.4",
+      "/home/alisharif/aion/tetryon/web3"
+    ]
+  ],
+  "_from": "aion-web3-avm-abi@1.2.6-beta.4",
+  "_id": "aion-web3-avm-abi@1.2.6-beta.4",
+  "_inBundle": false,
+  "_integrity": "sha512-0r7DAOy8RdZ/WVSOYwdyUSUJk3s8IhR7oN/UPNonN3dF9bOxY1Y6kz0Ps1/a8d8+i4mCa18CeB8RjupgOxteCQ==",
+  "_location": "/aion-web3-avm-abi",
+  "_phantomChildren": {
+    "aion-lib": "1.1.4",
+    "ethjs-unit": "0.1.6",
+    "number-to-bn": "1.7.0",
+    "randomhex": "0.1.5",
+    "safe-buffer": "5.2.0",
+    "underscore": "1.8.3",
+    "utf8": "2.1.1"
+  },
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "aion-web3-avm-abi@1.2.6-beta.4",
+    "name": "aion-web3-avm-abi",
+    "escapedName": "aion-web3-avm-abi",
+    "rawSpec": "1.2.6-beta.4",
+    "saveSpec": null,
+    "fetchSpec": "1.2.6-beta.4"
+  },
+  "_requiredBy": [
+    "/aion-web3-avm",
+    "/aion-web3-avm-contract"
+  ],
+  "_resolved": "https://registry.npmjs.org/aion-web3-avm-abi/-/aion-web3-avm-abi-1.2.6-beta.4.tgz",
+  "_spec": "1.2.6-beta.4",
+  "_where": "/home/alisharif/aion/tetryon/web3",
+  "dependencies": {
+    "aion-lib": "1.1.4",
+    "aion-web3-utils": "1.1.4",
+    "bn.js": "^4.11.8",
+    "safe-buffer": "^5.1.2",
+    "underscore": "1.8.3"
+  },
+  "description": "Web3 module encode and decode AVM in/output.",
+  "gitHead": "4b48e2dd4a8acc1ef30c0b2fd2f1a08fea0f9c6b",
+  "license": "LGPL-3.0",
+  "main": "src/index.js",
+  "name": "aion-web3-avm-abi",
+  "namespace": "aion",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aionnetwork/aion_web3/tree/avm-support-update/packages/web3-avm-abi"
+  },
+  "version": "1.2.6-beta.4"
+}

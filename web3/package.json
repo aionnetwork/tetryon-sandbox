@@ -1,0 +1,24 @@
+{
+  "name": "web3-tetryon",
+  "version": "0.5.0",
+  "description": "Tetryon web3 scripts",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "tetryon",
+    "web3"
+  ],
+  "author": "github.com/ali-sharif",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.2.2"
+  },
+  "dependencies": {
+    "aion-web3": "^1.2.6-beta.4",
+    "bn.js": "^5.0.0",
+    "aion-web3-avm-abi": "file:lib/aion-web3-avm-abi"
+  }
+}

@@ -11,3 +11,6 @@ node_modules/
 # program resources
 artifacts/
 
+# environment variables
+.env
+

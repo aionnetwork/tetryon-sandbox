@@ -4,10 +4,11 @@ const fs = require('fs');
 const BN = require('bn.js');
 const helper = require('./helper.js');
 const assert = require('assert');
+require('dotenv').config()
 
 // parameters 
 const kernelRpcIp = "http://127.0.0.1:8545";
-const privateKey = "0x81061409cb97ce0d723881a76e1bf9f786ae889c54934c85c0ae20895d06c28dbe9d29e4b75c0c5b74b8e9b68041e47ee29aa3d3ec1c290f5fdc1a00e3384e9f"; 
+const privateKey = process.env.ACC_SK;
 const deploymentAddr = "0xa024c818ec649Ebf920aF5aFcbB2C582D0d7Cc1D859427Ee86C0300022176b89";
 
 const web3 = new Web3(new Web3.providers.HttpProvider(kernelRpcIp));
@@ -99,7 +100,7 @@ const parseVerifyArgs = (path, proofSystem=ProofSystem.G16) => {
   return [input, hexStrToByteArray(proof)];
 } 
 
-const getSignedTransaction = async (data, to=null) => {
+const getSignedTransaction = async (data, to=null, _nonce=null) => {
   const type = (to == null) ? "0x2" : "0x1";
   const gas = (to == null) ? 5000000 : 2000000;
 
@@ -109,7 +110,8 @@ const getSignedTransaction = async (data, to=null) => {
     data: data,
     gasPrice: 10000000000,
     gas: gas,
-    type: type
+    type: type,
+    nonce: _nonce
   };
 
   const receipt = await web3.eth.accounts.signTransaction(tx, acc.privateKey);
@@ -178,10 +180,45 @@ const receipt = async (hash) => {
   console.log(receipt);
 }
 
-const load = async () => {
-  // send a 100 transactions
-  // wait for the last receipt. 
+const loadTest = async () => {
+  const verifyValues = parseVerifyArgs(path.join(__dirname,'artifacts','verify.json'));
+  const verifyData = web3.avm.contract.method('verify').inputs(['BigInteger[]','byte[]'], verifyValues).encode();
+  
 
+  const rejectValues = parseVerifyArgs(path.join(__dirname,'artifacts','reject.json'));
+  const rejectData = web3.avm.contract.method('verify').inputs(['BigInteger[]','byte[]'], rejectValues).encode();
+  
+
+  const BATCH_COUNT = 200;
+
+  while (true) {
+    try {
+      const success = await helper.waitForFinality(web3, BATCH_COUNT, acc.address, async () => {  
+        let nonce = await web3.eth.getTransactionCount(acc.address);
+
+        for (let i=0; i < BATCH_COUNT; i++) {  
+          if (Math.random() < 0.5) {
+            const verifySignedTx = await getSignedTransaction(verifyData, deploymentAddr, nonce+i);
+            web3.eth.sendSignedTransaction(verifySignedTx.rawTransaction);
+          }
+          else {
+            const rejectSignedTx = await getSignedTransaction(rejectData, deploymentAddr, nonce+i);
+            web3.eth.sendSignedTransaction(rejectSignedTx.rawTransaction);
+          }
+        }
+
+        console.log("Sent " + BATCH_COUNT + " transactions to " + deploymentAddr);
+      });      
+      
+      if (!success) {
+        console.log("Failed to complete transaction batch!");
+        continue;
+      }
+    } catch (e) {
+      console.log("Error: ", e);
+      continue;
+    }
+  }
 }
 
 (() => {
@@ -189,7 +226,7 @@ const load = async () => {
   console.log("Test Bench");
   console.log("-------------------------------------------");
 
-  reject()
+  loadTest()
   //receipt('0xbcfd55cc0e4f6dae665e7b5d9272f53c484a1f9383e1ef2ff2a1f49ef510363b')
   .then(() => {
     console.log("QED ...");

@@ -141,21 +141,55 @@ const deploy = async () => {
   console.log("Contract Deployed @ " + receipt.contractAddress);
 }
 
+const validateVerify = (receipt) => {
+  try {
+    assert(Array.isArray(receipt.logs) && receipt.logs.length == 1);
+  
+    const topic0 = receipt.logs[0].topics[0];
+    assert(topic0 && topic0.startsWith("0x566572696679536e61726b"))
+
+    const data = receipt.logs[0].data;
+    assert(data && (new BN(data.substring(2, data.length), 16)).eq(new BN(1)));
+
+    return true;
+  } catch (e) {
+    console.log(e);
+  }
+
+  return false;
+}
+
+
 const verify = async () => {
   const inputValues = parseVerifyArgs(path.join(__dirname,'artifacts','verify.json'));
   let callData = web3.avm.contract.method('verify').inputs(['BigInteger[]','byte[]'], inputValues).encode();
   
   const signedTx = await getSignedTransaction(callData, deploymentAddr);
   const receipt = await sendTransaction(signedTx);
-  assert(Array.isArray(receipt.logs) && receipt.logs.length == 1);
   
-  const topic0 = receipt.logs[0].topics[0];
-  assert(topic0 && topic0.startsWith("0x566572696679536e61726b"))
 
-  const data = receipt.logs[0].data;
-  assert(data && (new BN(data.substring(2, data.length), 16)).eq(new BN(1)));
+  if (validateVerify(receipt))
+    console.log("verify() = true");
+  else
+    console.log("[verify() = true] FAILED");
+}
 
-  console.log("verify() = true");
+const validateReject = (receipt) => {
+  try {
+    assert(Array.isArray(receipt.logs) && receipt.logs.length == 1);
+  
+    const topic0 = receipt.logs[0].topics[0];
+    assert(topic0 && topic0.startsWith("0x566572696679536e61726b"))
+
+    const data = receipt.logs[0].data;
+    assert(data && (new BN(data.substring(2, data.length), 16)).isZero());
+
+    return true;
+  } catch (e) {
+    console.log(e);
+  }
+
+  return false;
 }
 
 const reject = async () => {
@@ -164,15 +198,11 @@ const reject = async () => {
   
   const signedTx = await getSignedTransaction(callData, deploymentAddr);
   const receipt = await sendTransaction(signedTx);
-  assert(Array.isArray(receipt.logs) && receipt.logs.length == 1);
   
-  const topic0 = receipt.logs[0].topics[0];
-  assert(topic0 && topic0.startsWith("0x566572696679536e61726b"))
-
-  const data = receipt.logs[0].data;
-  assert(data && (new BN(data.substring(2, data.length), 16)).isZero());
-
-  console.log("verify() = false");
+  if (validateReject(receipt))
+    console.log("verify() = false");
+  else
+    console.log("[verify() = false] FAILED");
 }
 
 const receipt = async (hash) => {
@@ -189,20 +219,25 @@ const loadTest = async () => {
   const rejectData = web3.avm.contract.method('verify').inputs(['BigInteger[]','byte[]'], rejectValues).encode();
   
 
-  const BATCH_COUNT = 200;
+  const BATCH_COUNT = 250;
 
   while (true) {
+    let txHashList = [];
+
     try {
       const success = await helper.waitForFinality(web3, BATCH_COUNT, acc.address, async () => {  
         let nonce = await web3.eth.getTransactionCount(acc.address);
+        
 
         for (let i=0; i < BATCH_COUNT; i++) {  
           if (Math.random() < 0.5) {
             const verifySignedTx = await getSignedTransaction(verifyData, deploymentAddr, nonce+i);
+            txHashList.push({type:'verify', hash: verifySignedTx.messageHash});
             web3.eth.sendSignedTransaction(verifySignedTx.rawTransaction);
           }
           else {
             const rejectSignedTx = await getSignedTransaction(rejectData, deploymentAddr, nonce+i);
+            txHashList.push({type:'reject', hash: rejectSignedTx.messageHash});
             web3.eth.sendSignedTransaction(rejectSignedTx.rawTransaction);
           }
         }
@@ -214,6 +249,27 @@ const loadTest = async () => {
         console.log("Failed to complete transaction batch!");
         continue;
       }
+
+      const failedCount = 0;
+      txHashList.forEach(async (k,i) => {
+        const receipt = await web3.eth.getTransactionReceipt(k.hash);
+        let result = false;
+
+        if (k.type == 'verify') {
+          result = validateVerify(receipt);
+        } else if (k.type == 'reject') {
+          result = validateReject(receipt);
+        }
+
+        if (result == false)
+          failedCount ++;
+      });
+
+      if (failedCount == 0)
+        console.log("All " + BATCH_COUNT + " transactions PASSED validation.");
+      else
+        console.log(failedCount + " of " + BATCH_COUNT + " transactions FAILED validation.");
+
     } catch (e) {
       console.log("Error: ", e);
       continue;

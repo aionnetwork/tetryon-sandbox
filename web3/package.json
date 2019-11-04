@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "aion-web3": "^1.2.6-beta.4",
+    "aion-web3-avm-abi": "file:lib/aion-web3-avm-abi",
     "bn.js": "^5.0.0",
-    "aion-web3-avm-abi": "file:lib/aion-web3-avm-abi"
+    "moment": "^2.24.0"
   }
 }

@@ -112,5 +112,7 @@ public class IntegrationTest {
         // negative test case
         VerifyArgs neg = z.computeWitness("337", "113570").generateProof();
         verifyAndAssertResult(dapp, neg, false);
+
+        System.out.println("QED ...");
     }
 }

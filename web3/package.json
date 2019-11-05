@@ -1,7 +1,7 @@
 {
   "name": "web3-tetryon",
-  "version": "0.5.0",
-  "description": "Tetryon web3 scripts",
+  "version": "1.0.0",
+  "description": "Tetryon web3 testbench",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
@@ -21,6 +21,7 @@
     "aion-web3-avm-abi": "file:lib/aion-web3-avm-abi",
     "bn.js": "^5.0.0",
     "dotenv": "^8.2.0",
-    "moment": "^2.24.0"
+    "moment": "^2.24.0",
+    "ms": "^2.1.2"
   }
 }

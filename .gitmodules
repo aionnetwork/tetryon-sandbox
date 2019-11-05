@@ -8,3 +8,6 @@
 [submodule "submodules/bn128-jni"]
 	path = submodules/bn128-jni
 	url = git@github.com:ali-sharif/bn128-jni.git
+[submodule "submodules/mdkt-compiler"]
+	path = submodules/mdkt-compiler
+	url = git@github.com:ali-sharif/mdkt-compiler.git

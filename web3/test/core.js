@@ -92,21 +92,26 @@ const parseVerifyArgs = (path, proofSystem=ProofSystem.G16) => {
   return [input, hexStrToByteArray(proof)];
 };
 
-const getSignedTransaction = async (data, to=null, _nonce=null) => {
-  const type = (to == null) ? "0x2" : "0x1";
-  const gas = (to == null) ? 5000000 : 2000000;
+const getSignedTransaction = async (_data, _to=null, _nonce=null, _value=null) => {
+  const type = (_to == null) ? "0x2" : "0x1";
+  const gas = (_to == null) ? 5000000 : 2000000;
 
   let tx = {
-    to: to,
+    to: _to,
     from: acc.address,
-    data: data,
     gasPrice: 10000000000,
     gas: gas,
     type: type
   };
 
+  if (_data)
+    tx.data = _data;
+
   if(_nonce)
     tx.nonce = _nonce;
+
+  if (_value)
+    tx.value = _value;
 
   return await web3.eth.accounts.signTransaction(tx, acc.privateKey);
 };
@@ -201,14 +206,13 @@ const loadTest = async (deploymentAddr, verifyPath, rejectPath) => {
   const rejectValues = parseVerifyArgs(rejectPath);
   const rejectData = web3.avm.contract.method('verify').inputs(['BigInteger[]','byte[]'], rejectValues).encode();
 
-  const BATCH_COUNT = 500;
+  const BATCH_COUNT = 100;
   const MAX_RETRIES = 85;
 
   try {
     let txHashList = [];
     const success = await helper.waitForFinality(web3, BATCH_COUNT, acc.address, async () => {
       let nonce = await web3.eth.getTransactionCount(acc.address);
-
 
       for (let i=0; i < BATCH_COUNT; i++) {
         if (Math.random() < 0.5) {
@@ -260,3 +264,47 @@ const loadTest = async (deploymentAddr, verifyPath, rejectPath) => {
   return false;
 };
 module.exports.loadTest = loadTest;
+
+const randHex = function(len) {
+  var maxlen = 8,
+      min = Math.pow(16,Math.min(len,maxlen)-1) 
+      max = Math.pow(16,Math.min(len,maxlen)) - 1,
+      n   = Math.floor( Math.random() * (max-min+1) ) + min,
+      r   = n.toString(16);
+  while ( r.length < len ) {
+     r = r + randHex( len - maxlen );
+  }
+  return r;
+};
+
+const generateRandomAddress = function() {
+  return "0xa0"+randHex(62);
+}
+
+const loadTestValue = async () => {
+  const BATCH_COUNT = 500;
+  const MAX_RETRIES = 85;
+
+  try {
+      const success = await helper.waitForFinality(web3, BATCH_COUNT, acc.address, async () => {
+      let nonce = await web3.eth.getTransactionCount(acc.address);
+
+      const batch = new web3.BatchRequest();
+
+      for (let i=0; i < BATCH_COUNT; i++) {
+          const signedTx = await getSignedTransaction(null, generateRandomAddress(), nonce+i, 1);
+          batch.add(web3.eth.sendSignedTransaction.request(signedTx.rawTransaction));
+      }
+
+      await batch.execute();
+      console.log("Sent " + BATCH_COUNT + " value transfers.");
+    }, MAX_RETRIES);
+
+    return success;
+  } catch (e) {
+    console.log("Error: ", e);
+  }
+
+  return false;
+};
+module.exports.loadTestValue = loadTestValue;

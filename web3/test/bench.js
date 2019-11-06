@@ -1,5 +1,5 @@
 const path = require('path');
-const {deploy, verify, reject, loadTest} = require('./core.js');
+const {deploy, verify, reject, loadTest, loadTestValue} = require('./core.js');
 const assert = require('chai').assert;
 const {describe, before, it} = require('mocha');
 
@@ -65,9 +65,9 @@ describe('Tetryon Test Bench', function () {
       });
   });
 
-  it('Load Test', function (done) {
+  it('Load Test Snark', function (done) {
     console.log("-----------------------------------------------------");
-    console.log("Running Load Test");
+    console.log("Running Load Test Snark");
     console.log("-----------------------------------------------------");
 
     assert(deployAddr && deployAddr.length === 66, "Contract is not deployed.");
@@ -75,6 +75,22 @@ describe('Tetryon Test Bench', function () {
     const rejectPath = path.join(__dirname,'../artifacts/reject.json');
 
     loadTest(deployAddr, verifyPath, rejectPath)
+        .then((success) => {
+          assert(success === true, "Load Test Failed");
+          done();
+        })
+        .catch((e) => {
+          console.log(e);
+          done(e);
+        });
+  });
+
+  it('Load Test Value Transfer', function (done) {
+    console.log("-----------------------------------------------------");
+    console.log("Running Load Test Value Transfer");
+    console.log("-----------------------------------------------------");
+
+    loadTestValue()
         .then((success) => {
           assert(success === true, "Load Test Failed");
           done();

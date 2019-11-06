@@ -13,9 +13,10 @@ const MAX_RETRIES = 80;
 
 module.exports.waitForFinality = async (_web3, _nonceCount, _address, _callback, _maxRetries=MAX_RETRIES, _timeoutSeconds=10) => {
   const n0 = await _web3.eth.getTransactionCount(_address);
-  log("Polling every " + _timeoutSeconds + "s to observe nonce move from " + n0 + " to " + (n0 + _nonceCount) + ".");
 
   await _callback();
+
+  log("Polling every " + _timeoutSeconds + "s to observe nonce move from " + n0 + " to " + (n0 + _nonceCount) + ".");
 
   // now wait for the last transaction to be included in a block
   let retries = 0;

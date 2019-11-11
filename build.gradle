@@ -57,14 +57,12 @@ subprojects {
 // project-specific configurations
 // -------------------------------
 
-project(':verifier-contract') {
+project(':contract-bench') {
     // no project-specific settings
 }
 
-project(':zokrates-wrapper') {
-//    dependencies {
-//        implementation project(':verifier-contract')
-//    }
+project(':zokrates-bench') {
+    // no project-specific settings
 }
 
 

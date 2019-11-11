@@ -1,11 +1,12 @@
 # Why Do This?
 
-We have a submodules folders, to collect all the dependencies that were used to generate the artifacts used in this workbench. 
+These submodules are not depended-upon directly in this repository (in any build or runtime process). Instead, in order to simplify the build systems, all dependant artifacts are pre-built and manually copied over to the [artifacts directory](https://github.com/aionnetwork/tetryon-bench/tree/master/artifacts). 
 
-The submodules are pointed to the branch and height at which the artifacts were generated. 
+Submodules are maintained in this folder to *document* the source repository "pointer" at which the dependant artifacts were generated. 
 
-This is here mostly to document where the artifacts came from:
+* `avm` generates `artifacts/avm/*`
+* `bn128-jni` generates `artifacts/libbn_jni.so`
+* `zokrates` generates `artifacts/zokrates`
+* `mdkt-compiler` generates `artifacts/mdkt-compiler-1.4.0.jar`
 
-* avm -> artifacts/avm/*
-* bn128-jni -> project/native/libbn_jni.so
-* zokrates -> artifacts/zokrates
+This enables users to regenerate platform-dependant artifacts for their target platform (e.g. the Alt-Bn 128 shared library or the ZoKrates binary).  

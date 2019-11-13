@@ -2,6 +2,7 @@ package org.aion.zokrates;
 
 import org.aion.zokrates.proof.Gm17Proof;
 import org.aion.zokrates.proof.Groth16Proof;
+import org.aion.zokrates.proof.Pghr13Proof;
 import org.aion.zokrates.proof.Proof;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -41,8 +42,11 @@ public class VerifyArgs {
             case GM17:
                 proof = Gm17Proof.parseJson(p);
                 break;
+            case PGHR13:
+                proof = Pghr13Proof.parseJson(p);
+                break;
             default:
-                throw new IllegalArgumentException("only G16 supported for now");
+                throw new IllegalArgumentException("unsupported proving scheme");
         }
 
         JSONArray i = (JSONArray) obj.get("inputs");

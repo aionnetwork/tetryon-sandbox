@@ -16,7 +16,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
-public class VerifierGm17Test {
+public class VerifierPghr13Test {
 
     @ClassRule
     public static AvmRule avmRule = new AvmRule(true);
@@ -26,10 +26,10 @@ public class VerifierGm17Test {
 
     @BeforeClass
     public static void deployDapp() {
-        byte[] gm17DappBytes = avmRule.getDappBytes(VerifierGm17.class, null, 1,
+        byte[] pghr13DappBytes = avmRule.getDappBytes(VerifierPghr13.class, null, 1,
                 Fp.class, Fp2.class, G1.class, G1Point.class, G2.class, G2Point.class, Pairing.class, Util.class);
-        AvmRule.ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, gm17DappBytes);
-        Assert.assertTrue (w.getTransactionResult().energyUsed < 1_800_000);
+        AvmRule.ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, pghr13DappBytes);
+        Assert.assertTrue (w.getTransactionResult().energyUsed < 1_500_000);
         contract = w.getDappAddress();
     }
 
@@ -44,23 +44,39 @@ public class VerifierGm17Test {
 
     // positive test-case for square pre-image verifier: a=337, b=113569 (a^2 == b)
     @Test
-    public void gm17TestVerify() {
-        G1Point a = new G1Point("17ae8ae3a3ae77fcd0e9da581f3976f6b9bb66e18f2655e76a901d7c0ad60e84",
-                "0e2e18c96c7a7220292dfbb466e33d329d7871be26627cc14c6222dd6ba8e417");
+    public void pghr13TestVerify() {
+        G1Point a = new G1Point("09cba536a0323f53c5525ee1f2415ced788629664ff359f8cde6503ba939113b",
+                "14050b5fe8912d7b288cfe6629af86c546a5548fc5f7665aa7133dfc9a10bb47");
 
-        G2Point b = new G2Point("130df3f78758440c84c3b6dc42d5b2da77d603162ba4f2e08de4090ad2b1ced6",
-                            "1bdedcc0f4ed17e39f5bcb01375013e756e7fb76203026be84c67d7de53d5648",
-                            "00a21873ca5b33ee9c2991b36139d9d060649a92846e74a4e4fa9c6f9afdcc18",
-                            "23a4b1aceddccb3e42423aac8621189d84c912bdd380c8376d9cec7603741939");
+        G1Point a_p = new G1Point("1c0281a9eaa3155aa6e25850252872cb8e487b5cee4f13a47d5d277bd7ac269a",
+                "0a3d27e61d61b7b629847311c2c713d015af06c8bfcce7086c57b8da05b2a5bc");
 
-        G1Point c = new G1Point("2fb47f8b90df7a947f07d39bd711d831ff69673d9930147e2494952da9123a24",
-                                "1972aa9daf51870dd7416185cdb3fc613eb7b7e8b68046676772839223890f4b");
+        G2Point b = new G2Point("1bf3b08a6b1f2368b8901cd2ad1a08e20ef2a6ad6573b3f059f7bfe41659f4d0",
+                            "26670c96b1866fef3240213796d18e75e16377a3d63840b11f4cc7778a1f66ba",
+                            "0e42deeaee0637d38d02fd518c29975f5e422ad806d8b8cc4d3896cfcaebc7e1",
+                            "155f418ec6f01c83c101a684030b2065166905e8a31c661e6bf55a17cc1f7e46");
+
+        G1Point b_p = new G1Point("1c314693f6db4c29a7ccf6c13a3865a2935825709f5c0b5f18e50e2a003c3860",
+                "0a890a6d109f03b5c21132a115c73cb41b773e417072ce5dc0d8517636b2a091");
+
+        G1Point c = new G1Point("1fe0f755499612a188d46ddae0397c97798695e52d6467acfc408b076895fea5",
+                "214f71ba3886d322eb13158266d4c191df9b32e9422a7594d748be4de392afa0");
+
+        G1Point c_p = new G1Point("0c03e04ad7241f638aabcd8a9d8e196df6206967166b0b4ad4513c107f3fd226",
+                "2a530fc91db219e41a55d21130c1f0b5cc6e7abb78fb859190e30e76d5387e7d");
+
+        G1Point h = new G1Point("19bac844392d6a5dc98733081e13ec356f1595a18c837f1952f70febd1177419",
+                "0bc6e207160ef79ad55e73bd2d06f2a40e267a3c86014ab0cc3f59def95396da");
+
+        G1Point k = new G1Point("12fcae98cc80d67b1aaa733ad0f7a540f8986ae32bef476968bc4f5376bb9b68",
+                "11327e1921749e4ca9dffd1e1f527b4f09ccc7e8922bd067a649b5a264af21db");
 
         BigInteger[] input = new BigInteger[]{
                 new BigInteger("000000000000000000000000000000000000000000000000000000000001bba1", 16),
                 new BigInteger("0000000000000000000000000000000000000000000000000000000000000001", 16)};
 
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new VerifierGm17.Proof(a, b, c).serialize());
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", input,
+                new VerifierPghr13.Proof(a, a_p, b, b_p, c, c_p, k, h).serialize());
         AvmRule.ResultWrapper w = avmRule.call(sender, contract, BigInteger.ZERO, txData);
 
         // transaction should succeed
@@ -80,31 +96,46 @@ public class VerifierGm17Test {
 
     // negative test-case for square pre-image verifier: a=337, b=113570 (a^2 != b)
     @Test
-    public void gm17TestReject() {
-        G1Point a = new G1Point(
-                new Fp(new BigInteger("1946d8503f2bddd05511bfcebc502a620055b4c3d2c3c104e5c473d15b789a80", 16)),
-                new Fp(new BigInteger("1d1f8fffa65efb700e695f25f2a932385c144e7e964c85b9d74cca78672834ec", 16)));
+    public void pghr13TestReject() {
+        G1Point a = new G1Point("09cba536a0323f53c5525ee1f2415ced788629664ff359f8cde6503ba939113b",
+                "14050b5fe8912d7b288cfe6629af86c546a5548fc5f7665aa7133dfc9a10bb47");
 
-        G2Point b = new G2Point(
-                new Fp2(new BigInteger("2354063529fbbd0688744273b329b6b3d6a6f9d7a837dccb1617cb0e52d72609", 16),
-                        new BigInteger("1af73fa504d700c6e2f7730940a0139319264a6463c4303878aab72cf0e5e2b2", 16)),
-                new Fp2(new BigInteger("08645e9bbd3baef396dce9efcc844d79c191a2f6c1ab1c87fb3859c76da9ee43", 16),
-                        new BigInteger("0c48749defa64ff75dd86b4cf4efaa5a4c45ed17ca25efb8ea9b183eccee1303", 16)));
+        G1Point a_p = new G1Point("09cba536a0323f53c5525ee1f2415ced788629664ff359f8cde6503ba939113b",
+                "14050b5fe8912d7b288cfe6629af86c546a5548fc5f7665aa7133dfc9a10bb47");
 
-        G1Point c = new G1Point(
-                new Fp(new BigInteger("15ee5aef1ee660c3e4abecf8c31960b4ae106918ae8d403138607413a4d75f38", 16)),
-                new Fp(new BigInteger("066d8491786dbf2d5e45a4006a7252333c8ffb083e3b60d00c4c9044ae9a5760", 16)));
+        G2Point b = new G2Point("1bf3b08a6b1f2368b8901cd2ad1a08e20ef2a6ad6573b3f059f7bfe41659f4d0",
+                "26670c96b1866fef3240213796d18e75e16377a3d63840b11f4cc7778a1f66ba",
+                "0e42deeaee0637d38d02fd518c29975f5e422ad806d8b8cc4d3896cfcaebc7e1",
+                "155f418ec6f01c83c101a684030b2065166905e8a31c661e6bf55a17cc1f7e46");
 
+        G1Point b_p = new G1Point("1c314693f6db4c29a7ccf6c13a3865a2935825709f5c0b5f18e50e2a003c3860",
+                "0a890a6d109f03b5c21132a115c73cb41b773e417072ce5dc0d8517636b2a091");
+
+        G1Point c = new G1Point("1fe0f755499612a188d46ddae0397c97798695e52d6467acfc408b076895fea5",
+                "214f71ba3886d322eb13158266d4c191df9b32e9422a7594d748be4de392afa0");
+
+        G1Point c_p = new G1Point("0c03e04ad7241f638aabcd8a9d8e196df6206967166b0b4ad4513c107f3fd226",
+                "2a530fc91db219e41a55d21130c1f0b5cc6e7abb78fb859190e30e76d5387e7d");
+
+        G1Point h = new G1Point("19bac844392d6a5dc98733081e13ec356f1595a18c837f1952f70febd1177419",
+                "0bc6e207160ef79ad55e73bd2d06f2a40e267a3c86014ab0cc3f59def95396da");
+
+        G1Point k = new G1Point("12fcae98cc80d67b1aaa733ad0f7a540f8986ae32bef476968bc4f5376bb9b68",
+                "11327e1921749e4ca9dffd1e1f527b4f09ccc7e8922bd067a649b5a264af21db");
 
         BigInteger[] input = new BigInteger[]{
-                new BigInteger("000000000000000000000000000000000000000000000000000000000001bba2", 16),
-                new BigInteger("0000000000000000000000000000000000000000000000000000000000000000", 16)};
+                new BigInteger("000000000000000000000000000000000000000000000000000000000001bba1", 16),
+                new BigInteger("0000000000000000000000000000000000000000000000000000000000000001", 16)};
 
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new VerifierGm17.Proof(a, b, c).serialize());
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", input,
+                new VerifierPghr13.Proof(a, a_p, b, b_p, c, c_p, k, h).serialize());
         AvmRule.ResultWrapper w = avmRule.call(sender, contract, BigInteger.ZERO, txData);
 
+        // transaction should succeed
         Assert.assertTrue(w.getReceiptStatus().isSuccess());
+        // transaction should not cost too much
         Assert.assertTrue(w.getTransactionResult().energyUsed < 1000_000);
+        // verify should return "true"
         Assert.assertFalse(new ABIDecoder(w.getTransactionResult().copyOfTransactionOutput().orElseThrow()).decodeOneBoolean());
 
         List<Log> logs = w.getLogs();
@@ -115,7 +146,7 @@ public class VerifierGm17Test {
     }
 
     @Test
-    public void gm17TestBadInput1() {
+    public void pghr13TestBadInput1() {
         BigInteger[] input = new BigInteger[]{
                 new BigInteger("000000000000000000000000000000000000000000000000000000000001bba2", 16),
                 new BigInteger("0000000000000000000000000000000000000000000000000000000000000000", 16)};
@@ -128,7 +159,7 @@ public class VerifierGm17Test {
     }
 
     @Test
-    public void gm17TestBadInput2() {
+    public void pghr13TestBadInput2() {
         G1Point a = new G1Point(
                 new Fp(new BigInteger("07f4a1ab12b1211149fa0aed8ade3442b774893dcd1caffb8693ade54999c164", 16)),
                 new Fp(new BigInteger("23b7f10c5e1aeaffafa088f1412c0f307969ba3f8f9d5920214a4cb91693fab5", 16)));
@@ -143,7 +174,7 @@ public class VerifierGm17Test {
                 new Fp(new BigInteger("153c3a313679a5c11010c3339ff4f787246ed2e8d736efb615aeb321f5a22432", 16)),
                 new Fp(new BigInteger("06691d8441c35768a4ca87a5f5ee7d721bf13115d2a16726c12cda295a19bf09", 16)));
 
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", new BigInteger[]{}, new VerifierGm17.Proof(a, b, c).serialize());
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", new BigInteger[]{}, new VerifierG16.Proof(a, b, c).serialize());
         AvmRule.ResultWrapper r = avmRule.call(sender, contract, BigInteger.ZERO, txData);
 
         TransactionStatus s = r.getReceiptStatus();

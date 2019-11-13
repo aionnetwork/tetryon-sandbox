@@ -139,4 +139,28 @@ public class IntegrationTest {
 
         System.out.println("QED ...");
     }
+
+    @Test
+    public void preimageTestPghr13() throws Exception {
+        File workingDir = folder.newFolder(testName.getMethodName());
+        String code = loadResource("preimage.zok");
+
+        ZokratesProgram z = new ZokratesProgram(workingDir, code, ProvingScheme.PGHR13);
+
+        Map<String, String> contracts = z.compile().setup().exportAvmVerifier();
+
+        //String exportedFileName = exportContractJar("org.oan.tetryon.Verifier", contracts, "SquarePreimageVerifier", new File("export"));
+
+        Address dapp = deployContract("org.oan.tetryon.Verifier", contracts);
+
+        // positive test case
+        VerifyArgs pos = z.computeWitness("337", "113569").generateProof();
+        verifyAndAssertResult(dapp, pos, true);
+
+        // negative test case
+        VerifyArgs neg = z.computeWitness("337", "113570").generateProof();
+        verifyAndAssertResult(dapp, neg, false);
+
+        System.out.println("QED ...");
+    }
 }

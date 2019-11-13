@@ -15,16 +15,6 @@ public class G2Test {
 
     private static final BigInteger CURVE_ORDER = new BigInteger("21888242871839275222246405745257275088548364400416034343698204186575808495617");
     private static final BigInteger FIELD_MODULUS = new BigInteger("21888242871839275222246405745257275088696311157297823662689037894645226208583");
-    private static final G2Point G2_P = new G2Point(
-            new Fp2(
-                    new BigInteger("10857046999023057135944570762232829481370756359578518086990519993285655852781"),
-                    new BigInteger("11559732032986387107991004021392285783925812861821192530917403151452391805634")
-            ),
-            new Fp2(
-                    new BigInteger("8495653923123431417604973247489272438418190587263600148770280649306958101930"),
-                    new BigInteger("4082367875863433681332203403145435568316851327593401208105741076214120093531")
-            )
-    );
     private static final G2Point G2_INF = new G2Point(
             new Fp2(new BigInteger("0"), new BigInteger("0")),
             new Fp2(new BigInteger("0"), new BigInteger("0"))

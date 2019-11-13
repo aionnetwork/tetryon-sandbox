@@ -26,10 +26,10 @@ public class VerifierGm17Test {
 
     @BeforeClass
     public static void deployDapp() {
-        byte[] g16DappBytes = avmRule.getDappBytes(VerifierGm17.class, null, 1,
+        byte[] gm17DappBytes = avmRule.getDappBytes(VerifierGm17.class, null, 1,
                 Fp.class, Fp2.class, G1.class, G1Point.class, G2.class, G2Point.class, Pairing.class, Util.class);
-        AvmRule.ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, g16DappBytes);
-        Assert.assertTrue (w.getTransactionResult().energyUsed < 1_500_000);
+        AvmRule.ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, gm17DappBytes);
+        Assert.assertTrue (w.getTransactionResult().energyUsed < 1_800_000);
         contract = w.getDappAddress();
     }
 
@@ -60,7 +60,7 @@ public class VerifierGm17Test {
                 new BigInteger("000000000000000000000000000000000000000000000000000000000001bba1", 16),
                 new BigInteger("0000000000000000000000000000000000000000000000000000000000000001", 16)};
 
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new VerifierG16.Proof(a, b, c).serialize());
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new VerifierGm17.Proof(a, b, c).serialize());
         AvmRule.ResultWrapper w = avmRule.call(sender, contract, BigInteger.ZERO, txData);
 
         // transaction should succeed
@@ -100,7 +100,7 @@ public class VerifierGm17Test {
                 new BigInteger("000000000000000000000000000000000000000000000000000000000001bba2", 16),
                 new BigInteger("0000000000000000000000000000000000000000000000000000000000000000", 16)};
 
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new VerifierG16.Proof(a, b, c).serialize());
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new VerifierGm17.Proof(a, b, c).serialize());
         AvmRule.ResultWrapper w = avmRule.call(sender, contract, BigInteger.ZERO, txData);
 
         Assert.assertTrue(w.getReceiptStatus().isSuccess());
@@ -143,7 +143,7 @@ public class VerifierGm17Test {
                 new Fp(new BigInteger("153c3a313679a5c11010c3339ff4f787246ed2e8d736efb615aeb321f5a22432", 16)),
                 new Fp(new BigInteger("06691d8441c35768a4ca87a5f5ee7d721bf13115d2a16726c12cda295a19bf09", 16)));
 
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", new BigInteger[]{}, new VerifierG16.Proof(a, b, c).serialize());
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", new BigInteger[]{}, new VerifierGm17.Proof(a, b, c).serialize());
         AvmRule.ResultWrapper r = avmRule.call(sender, contract, BigInteger.ZERO, txData);
 
         TransactionStatus s = r.getReceiptStatus();

@@ -6,7 +6,6 @@ import org.aion.avm.tooling.ABIUtil;
 import org.aion.avm.userlib.abi.ABIDecoder;
 import org.aion.types.Log;
 import org.aion.types.TransactionStatus;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -17,7 +16,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
-public class VerifierTest {
+public class VerifierG16Test {
 
     @ClassRule
     public static AvmRule avmRule = new AvmRule(true);
@@ -27,7 +26,7 @@ public class VerifierTest {
 
     @BeforeClass
     public static void deployDapp() {
-        byte[] g16DappBytes = avmRule.getDappBytes(Verifier.class, null, 1,
+        byte[] g16DappBytes = avmRule.getDappBytes(VerifierG16.class, null, 1,
                 Fp.class, Fp2.class, G1.class, G1Point.class, G2.class, G2Point.class, Pairing.class, Util.class);
         AvmRule.ResultWrapper w = avmRule.deploy(sender, BigInteger.ZERO, g16DappBytes);
         Assert.assertTrue (w.getTransactionResult().energyUsed < 1_500_000);
@@ -65,7 +64,7 @@ public class VerifierTest {
                 new BigInteger("000000000000000000000000000000000000000000000000000000000001bba1", 16),
                 new BigInteger("0000000000000000000000000000000000000000000000000000000000000001", 16)};
 
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new Verifier.Proof(a, b, c).serialize());
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new VerifierG16.Proof(a, b, c).serialize());
         AvmRule.ResultWrapper w = avmRule.call(sender, contract, BigInteger.ZERO, txData);
 
         // transaction should succeed
@@ -105,7 +104,7 @@ public class VerifierTest {
                 new BigInteger("000000000000000000000000000000000000000000000000000000000001bba2", 16),
                 new BigInteger("0000000000000000000000000000000000000000000000000000000000000000", 16)};
 
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new Verifier.Proof(a, b, c).serialize());
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", input, new VerifierG16.Proof(a, b, c).serialize());
         AvmRule.ResultWrapper w = avmRule.call(sender, contract, BigInteger.ZERO, txData);
 
         Assert.assertTrue(w.getReceiptStatus().isSuccess());
@@ -148,7 +147,7 @@ public class VerifierTest {
                 new Fp(new BigInteger("153c3a313679a5c11010c3339ff4f787246ed2e8d736efb615aeb321f5a22432", 16)),
                 new Fp(new BigInteger("06691d8441c35768a4ca87a5f5ee7d721bf13115d2a16726c12cda295a19bf09", 16)));
 
-        byte[] txData = ABIUtil.encodeMethodArguments("verify", new BigInteger[]{}, new Verifier.Proof(a, b, c).serialize());
+        byte[] txData = ABIUtil.encodeMethodArguments("verify", new BigInteger[]{}, new VerifierG16.Proof(a, b, c).serialize());
         AvmRule.ResultWrapper r = avmRule.call(sender, contract, BigInteger.ZERO, txData);
 
         TransactionStatus s = r.getReceiptStatus();

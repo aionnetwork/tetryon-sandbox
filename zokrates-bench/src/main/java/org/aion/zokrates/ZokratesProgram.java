@@ -16,11 +16,13 @@ import java.util.regex.Pattern;
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public class ZokratesProgram {
     // hardcoded paths
-    private final File zokratesPath = new File("../artifacts/zokrates");
+    private final String ZOKRATES_RELEASE = "../submodules/zokrates/target/release/zokrates";
+    private final String ZOKRATES_DEBUG = "../submodules/zokrates/target/debug/zokrates";
 
     // provided paths
-    File workingDir;
-    ProvingScheme scheme;
+    final File workingDir;
+    final ProvingScheme scheme;
+    final File zokratesPath;
 
     // constants
     final String rootCodeFileName = "root.code";
@@ -32,6 +34,19 @@ public class ZokratesProgram {
      * Generates the root.code file in the zokrates working directory provided. All commands will be executed in this directory.
      */
     public ZokratesProgram(File workingDir, String sourceCode, ProvingScheme scheme) throws IOException {
+        File releasePath = new File(ZOKRATES_RELEASE);
+        File debugPath = new File(ZOKRATES_DEBUG);
+
+        if (releasePath.exists()) {
+            System.out.println("Using ZoKrates at path: " + ZOKRATES_RELEASE);
+            zokratesPath = releasePath;
+        } else if (debugPath.exists()) {
+            System.out.println("Using ZoKrates at path: " + ZOKRATES_DEBUG);
+            zokratesPath = debugPath;
+        } else {
+            throw new RuntimeException("ZoKrates binary not found. Please build ZoKrates and re-run!");
+        }
+
         // provided paths
         this.workingDir = workingDir;
         this.scheme = scheme;

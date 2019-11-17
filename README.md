@@ -17,6 +17,11 @@ Assuming >JDK 10 is installed, the tests can be run using packaged Gradle wrappe
 
 The [zokrates-bench](https://github.com/aionnetwork/tetryon-bench/tree/master/zokrates-bench) tests integration of the ZoKrates toolchain with the AVM programming environment. Here, the ZoKates binary is invoked from Java (using the class `ZokratesProgram`), to enable development and testing of SNARKs on the AVM, without needing to switch to the ZoKrates CLI to invoke intermediate operations. One could go directly from writing a SNARK in the ZoKrates DSL, to deploying a verifier for the SNARK on the AVM, to testing the deployed verifier, all without leaving the JUnit environment. This environment uses a stand-alone AVM object (using the [AVM JUnit rule](https://blog.aion.network/debugging-avm-contracts-4a3256e86221)) to enable greater debuggability.  
 
+Before running the test, please build the ZoKrates library for your platform:
+```
+submodules/zokrates/build.sh
+```
+
 Assuming >JDK 10 is installed, the tests can be run using packaged Gradle wrapper: 
 ```
 ./gradlew :zokrates-bench:cleanTest :zokrates-bench:test -i

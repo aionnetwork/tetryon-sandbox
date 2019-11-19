@@ -74,11 +74,11 @@ public class TestUtils {
         double durationMilliSec = durationNanoSec / 1000000.0;
         double durationSec = durationMilliSec / 1000.0;
 
-        System.out.println(String.format("AVM call() took %s",
-                durationSec > 1 ? String.format("%.6f seconds", durationSec) : String.format("%.6f ms", durationMilliSec)));
+        System.out.println("AVM call() took " +
+                (durationSec > 1 ? String.format("%.6f seconds", durationSec) : String.format("%.6f ms", durationMilliSec)));
 
         assertTrue(w.getReceiptStatus().isSuccess());
-        assertTrue(w.getTransactionResult().energyUsed < 1_000_000);
+        System.out.println("AVM call() used NRG: " + String.format("%,d", w.getTransactionResult().energyUsed));
         assertEquals(new ABIDecoder(w.getTransactionResult().copyOfTransactionOutput().orElseThrow()).decodeOneBoolean(), verifyResult);
 
         List<Log> logs = w.getLogs();
